@@ -1,0 +1,3 @@
+[submodule "public/plugin/lokka-calendar"]
+	path = public/plugin/lokka-calendar
+	url = https://github.com/nkmrshn/lokka-calendar.git
