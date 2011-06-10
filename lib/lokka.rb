@@ -33,7 +33,6 @@ autoload :Comment, 'lokka/comment'
 autoload :Snippet, 'lokka/snippet'
 autoload :Bread, 'lokka/bread'
 autoload :BreadCrumb, 'lokka/bread_crumb'
-require 'lokka/tag'
 
 module Lokka
   autoload :Before, 'lokka/before'
@@ -54,13 +53,28 @@ module Lokka
   def self.env
     if ENV['LOKKA_ENV'] == 'production' or ENV['RACK_ENV'] == 'production'
       'production'
+    elsif ENV['LOKKA_ENV'] == 'test' or ENV['RACK_ENV'] == 'test'
+      'test'
     else
       'development'
     end
   end
 
+  def self.production?
+    self.env == 'production'
+  end
+
+  def self.development?
+    self.env == 'development'
+  end
+
+  def self.test?
+    self.env == 'test'
+  end
+
   class Database
     def connect
+      DataMapper::Logger.new(STDOUT, :debug) if Lokka.development?
       DataMapper.setup(:default, Lokka.config[Lokka.env]['dsn'])
       self
     end
@@ -96,6 +110,8 @@ module Lokka
       load_fixture :users
       load_fixture :sites
       load_fixture :entries
+      load_fixture :tags
+      load_fixture :taggings
     end
   end
 end
@@ -167,14 +183,6 @@ module Tilt
     def render(scope=Object.new, locals={}, &block)
       output = render_org(scope, locals, &block)
       output.force_encoding(Encoding.default_external) unless output.nil?
-    end
-  end
-end
-
-module Sinatra
-  module Templates
-    def slim(template, options={}, locals={})
-      render :slim, template, options, locals
     end
   end
 end
